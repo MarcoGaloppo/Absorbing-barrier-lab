@@ -1,15 +1,15 @@
 """
 
-A minimal laboratory for watching standard textbook statistic misbehave once you
-put *humans* inside the sum. We now that in finance fat-tail statistics, nontrivial 
-correlations and black swans are almost ubiquitous. But it is instructive to see 
+A minimal laboratory for watching standard textbook statistics misbehave once you
+put *humans* inside the sum. We know that in finance fat-tail statistics, nontrivial
+correlations and black swans are almost ubiquitous. But it is instructive to see
 how non-trivial statistics may pop-up in (seemingly) less complicated scenarios.
 
 
-Here, the setting is a tennis match. At the bottom there is a Bernoulli trial: 
+Here, the setting is a tennis match. At the bottom there is a Bernoulli trial:
 player A wins a point with probability ``p``. Under the textbook assumptions (i.i.d.
 points) the number of points A wins in ``n`` points is exactly Binomial(n, p),
-the CLT applies with the usual sqrt(n) scaling, and everything is comfortable. 
+the CLT applies with the usual sqrt(n) scaling, and everything is comfortable.
 However, here we break this comfort with **Absorbing barriers / nonlinear aggregation**,
 **Serial correlation ("momentum" / the hot hand)**, and **Long-memory**.
 
@@ -56,7 +56,7 @@ def logit(p: float | np.ndarray) -> float | np.ndarray:
 
 def sigmoid(x: float | np.ndarray) -> float | np.ndarray:
     """Inverse of :func:`logit`, numerically stable for large |x|."""
-    x = np.asarray(x)
+    x = np.asarray(x, dtype=float)
     out = np.empty_like(x)
     pos = x >= 0
     out[pos] = 1.0 / (1.0 + np.exp(-x[pos]))
@@ -115,17 +115,17 @@ class TennisSimulator:
         Momentum strength, in log-odds. ``k = 0`` gives i.i.d. points. Positive
         ``k`` means winning the previous point makes you more likely to win the
         next one (hot hand); negative ``k`` means mean reversion ("they always
-        drops serve right after breaking"). 
+        drop serve right after breaking").
     beta : float
-           Peano exponent of the long-memory run. 
+           Pareto exponent of the long-memory run.
     gamma : float
             Convenient normalisation parameter to keep the mean fixed in the long-memory run.
-    memory : {"none", "markov","long"}
+    memory : {"none", "markov", "long"}
         ``"none"`` forces ``k`` to be ignored. Convenience switch so the same
         object can be flipped between regimes.
     calibrate : bool
         Solve for the offset ``c`` so the stationary point-win probability equals
-        ``p`` exactly. Without it, correlation shifts the mean too and you can no 
+        ``p`` exactly. Without it, correlation shifts the mean too and you can no
         longer attribute what you see to variance alone.
     best_of : int
         3 or 5.
@@ -140,8 +140,9 @@ class TennisSimulator:
     Notes
     -----
     The momentum state persists *across* games and sets within a match - it is a
-    property of the player, not of the game. It resets between matches. Not p though,
-    we are not looking at players which evolve outside of the game.
+    property of the player, not of the game. It resets between matches. ``p``
+    itself never moves: we are not modelling players who evolve over the course
+    of a match.
     """
 
     def __init__(
@@ -162,15 +163,15 @@ class TennisSimulator:
     ) -> None:
         if not 0.0 < p < 1.0:
             raise ValueError("p must lie strictly inside (0, 1)")
-        if memory not in ("none", "markov","long"):
-            raise ValueError("memory must be 'none','markov', or 'long'")
+        if memory not in ("none", "markov", "long"):
+            raise ValueError("memory must be 'none', 'markov', or 'long'")
         if best_of not in (3, 5):
             raise ValueError("best_of must be 3 or 5")
 
         self.p = float(p)
         self.memory = memory
-        self._long = memory == "long" 
-        self.k = 0.0 if memory in ("none","long") else float(k)
+        self._long = memory == "long"
+        self.k = 0.0 if memory in ("none", "long") else float(k)
         self.beta = float(beta)
         self.gamma = float(gamma)
         self.calibrate = bool(calibrate)
@@ -182,6 +183,7 @@ class TennisSimulator:
         self.points_to_win_game = int(points_to_win_game)
         self.stationary_start = bool(stationary_start)
 
+        self.seed = seed
         self.rng = np.random.default_rng(seed)
 
         self._L = float(logit(self.p))
@@ -191,8 +193,8 @@ class TennisSimulator:
                 raise ValueError("beta must exceed 1, else the run mean is infinite")
             self._gamma_a = 2.0 * self.gamma * self.p
             self._gamma_b = 2.0 * self.gamma * (1 - self.p)
-            check_tail_params(self.beta,self._gamma_a)
-            check_tail_params(self.beta,self._gamma_b)
+            check_tail_params(self.beta, self._gamma_a)
+            check_tail_params(self.beta, self._gamma_b)
             self._c = 0.0
             self._a = self._b = None
         else:
@@ -352,7 +354,7 @@ class TennisSimulator:
                 "E[run B]": eb,
                 "hurst": self.hurst_exponent,
             }
-        
+
         return {
             "p_target": self.p,
             "k": self.k,
@@ -383,11 +385,15 @@ class TennisSimulator:
         return 1 if self._u() < self.stationary_p else -1
 
     def _p_next(self, s: int) -> float:
-        "The simple order-one chain will use only the sign of the streak,"
-        "the long memory will use directly the magnitude."
+        """
+        Probability that A wins the next point, given the signed streak ``s``.
+
+        The simple order-one chain will use only the sign of the streak; the
+        long memory will use directly the magnitude.
+        """
         if self._long:
             m = s if s > 0 else -s
-            if s >0:
+            if s > 0:
                 return 1.0 - self.beta / (m + self._gamma_a)
             return self.beta / (m + self._gamma_b)
         if self.k == 0.0:
@@ -395,7 +401,7 @@ class TennisSimulator:
         return self._a if s > 0 else self._b
 
     # ------------------------------------------------------------------ #
-    # point sequences 
+    # point sequences
     # ------------------------------------------------------------------ #
     def simulate_point_sequences(
         self, n_sequences: int, n_points: int, return_paths: bool = False
@@ -404,9 +410,9 @@ class TennisSimulator:
         Simulate ``n_sequences`` independent stretches of ``n_points`` points and
         return the number of points won by A in each.
 
-        The simple "sum of Bernoullis" experiment. With ``k = 0`` the returned 
-        counts are exactly Binomial(n_points, p). With ``k > 0`` they are not 
-        - same mean, wider distribution, heavier tails, longer runs. With long 
+        The simple "sum of Bernoullis" experiment. With ``k = 0`` the returned
+        counts are exactly Binomial(n_points, p). With ``k > 0`` they are not
+        - same mean, wider distribution, heavier tails, longer runs. With long
         memory enabled things are even funkier than with the order-one chain.
 
         Vectorised across sequences.
@@ -441,7 +447,7 @@ class TennisSimulator:
             counts += win
             if return_paths:
                 paths[:, t] = win
-            state = np.where(win == 1, np.maximum(state,0) + 1, np.minimum(state,0) -1)
+            state = np.where(win == 1, np.maximum(state, 0) + 1, np.minimum(state, 0) - 1)
 
         return (counts, paths) if return_paths else counts
 
@@ -483,8 +489,10 @@ class TennisSimulator:
             if pb >= target and pb - pa >= 2:
                 return 0, pa, pb, state, run, best_run
 
-    def _play_set(self, state: int, run: int, best_run: int ) -> Tuple[int, int, int, int, int, int, int]:
-        """Returns ``(winner, games_a, games_b, points_a, points_b, state, best_run)``."""
+    def _play_set(
+        self, state: int, run: int, best_run: int
+    ) -> Tuple[int, int, int, int, int, int, int, int]:
+        """Returns ``(winner, games_a, games_b, points_a, points_b, state, run, best_run)``."""
         ga = gb = pa = pb = 0
         G = self.games_to_win_set
         while True:
@@ -580,10 +588,19 @@ class TennisSimulator:
     # convenience
     # ------------------------------------------------------------------ #
     def with_params(self, **kwargs) -> "TennisSimulator":
-        """Return a fresh simulator with some parameters overridden."""
+        """
+        Return a fresh simulator with some parameters overridden.
+
+        Every constructor argument is carried across, ``beta``, ``gamma`` and
+        ``seed`` included - so a long-memory simulator stays the one you built,
+        and a seeded one restarts the same stream rather than an arbitrary new
+        one.
+        """
         base = dict(
             p=self.p,
             k=self.k,
+            beta=self.beta,
+            gamma=self.gamma,
             memory=self.memory,
             calibrate=self.calibrate,
             best_of=self.best_of,
@@ -592,11 +609,18 @@ class TennisSimulator:
             tiebreak_points=self.tiebreak_points,
             points_to_win_game=self.points_to_win_game,
             stationary_start=self.stationary_start,
+            seed=self.seed,
         )
         base.update(kwargs)
         return TennisSimulator(**base)
 
     def __repr__(self) -> str:
+        if self._long:
+            return (
+                f"TennisSimulator(p={self.p:.4f}, memory='long', "
+                f"beta={self.beta:.3f}, gamma={self.gamma:.3f}, "
+                f"hurst={self.hurst_exponent:.4f}, best_of={self.best_of})"
+            )
         return (
             f"TennisSimulator(p={self.p:.4f}, k={self.k:.3f}, "
             f"rho={self.rho:.4f}, var_inflation={self.variance_inflation:.3f}, "
@@ -688,7 +712,7 @@ def check_tail_params(beta: float, gamma: float) -> None:
     if beta <= 0.0:
         raise ValueError("beta must be positive")
     if gamma <= beta - 1.0:
-        raise ValueError(f"need gamma > beta - 1 (got beta={beta}, gamma={gamma}); ")
+        raise ValueError(f"need gamma > beta - 1 (got beta={beta}, gamma={gamma})")
 
 def run_hazard(ell, beta: float, gamma: float = 1.0):
     """
@@ -696,8 +720,8 @@ def run_hazard(ell, beta: float, gamma: float = 1.0):
 
     P(the current run ends on the next trial | it has reached length ``ell``).
 
-    We use ``h(l) = beta / (l + gamma)``. It should decay just slowly enough that
-    the run-length distribution has a Pareto tail ``P(L > l) ~ C l^(-beta)``, so 
+    We use ``h(l) = beta / (l + gamma)``. It decays just slowly enough that the
+    run-length distribution has a Pareto tail ``P(L > l) ~ C l^(-beta)``, so
     ``beta`` is literally a tail index and can be checked against a Hill estimate.
 
     """
@@ -709,14 +733,14 @@ def run_survival(ell, beta: float, gamma: float = 1.0):
     """
     Exact ``P(L > ell)`` for the hazard of :func:`run_hazard`.
 
-    The product can be expressed in term of Gamma functions:
+    The product can be expressed in terms of Gamma functions:
 
         P(L > l) = prod_{j=1..l} (1 - beta/(j+gamma))
                  = [Gamma(l+1+gamma-beta) / Gamma(1+gamma-beta)]
                    * [Gamma(1+gamma)      / Gamma(l+1+gamma)]
 
     We know that Gamma(l+a)/Gamma(l+b) ~ l^(a-b), so this behaves as
-    ``C l^(-beta)`` for large ``l``. Having the survival function in closed 
+    ``C l^(-beta)`` for large ``l``. Having the survival function in closed
     form means the sampler can be tested exactly. Not a usual situation, but a nice one!
     """
     check_tail_params(beta, gamma)
@@ -764,7 +788,7 @@ def gamma_for_mean_run(mean_run_a: float, beta: float, p: float) -> float:
 #
 # All log-likelihoods below are **conditional on the first point of each match**,
 # so that they are likelihoods of exactly the same data and may be compared
-# directly. 
+# directly.
 # --------------------------------------------------------------------------- #
 def calibrated_transitions(p: float, k: float) -> Tuple[float, float]:
     """``(a, b)`` for the order-1 chain whose stationary win probability is p."""
@@ -889,3 +913,9 @@ if __name__ == "__main__":  # pragma: no cover
         print(sim)
         for key, val in sim.summary().items():
             print(f"    {key:>20s} : {val: .5f}")
+
+    g = gamma_for_mean_run(4.0, beta=1.6, p=0.55)
+    sim = TennisSimulator(p=0.55, memory="long", beta=1.6, gamma=g, seed=0)
+    print(sim)
+    for key, val in sim.summary().items():
+        print(f"    {key:>20s} : {val: .5f}")

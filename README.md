@@ -1,11 +1,14 @@
 # Statistics in human affairs — a tennis laboratory
 
-How much do textbook statistics comfortable machinery survives contact with a
-process that has **absorbing barriers**, **serial correlation**, and **long memory**? 
+[![CI](https://github.com/MarcoGaloppo/Absorbing-barrier-lab/actions/workflows/ci.yml/badge.svg)](https://github.com/MarcoGaloppo/Absorbing-barrier-lab/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
+How much of textbook statistics' comfortable machinery survives contact with a
+process that has **absorbing barriers**, **serial correlation**, and **long memory**?
 Tennis is a clean (and fun!) place to ask, because the bottom of the process really is a
-Bernoulli trial. Additionally, everything above it is bookkeeping that we control exactly. 
-Although finance is messy sometimes is good to start with a ground truth and build up 
-some basic intuition (without being fooled too much by it possibly!)
+Bernoulli trial. Additionally, everything above it is bookkeeping that we control exactly.
+Although finance is messy, it is sometimes good to start from a ground truth and build up
+some basic intuition — without being too fooled by it.
 
 ## The set-up
 
@@ -16,7 +19,7 @@ Here, we break this simple scenario in various ways:
 **1. Nonlinear aggregation.** Tennis counts games (first to 4, win by 2), sets (first to 6
 games, win by 2, tiebreak at 6–6), and matches (best of 3 or 5). Every layer is an effective
 absorbing-barrier stopping problem, and the composition `f(p) = P(A wins the match)` is a
-steep S-curve. It is trivial to say, but scoring a point and winning a game are not the 
+steep S-curve. It is trivial to say, but scoring a point and winning a game are not the
 same thing. And they do not carry the same probability given a set chance of winning a point.
 **Note, this is present even with perfectly i.i.d. points.**
 
@@ -27,55 +30,55 @@ same thing. And they do not carry the same probability given a set chance of win
 The offset `c` is solved numerically so the **stationary** win probability stays exactly `p`.
 This is done because turning correlation on then changes the variance and path structure
 **without moving the mean**. Also, note that to try and avoid exiting completely from
-CLT territory we are consider short-time correlations within each game (at this stage).
+CLT territory we consider short-time correlations within each game (at this stage).
 
 **3. Long memory, specified through the run-length hazard.**  What actually
-controls the memory is the tail of the run-length distribution, so we specify that directly to 
-try to introduce fat-tails and long-memory:
+controls the memory is the tail of the run-length distribution, so we specify that directly to
+try to introduce fat tails and long memory:
 
 (2) h(ℓ) = P(run ends next | run has reached ℓ) = β / (ℓ + γ).
 
-The survival function behaves as `P(L > ℓ) ~ C ℓ^(−β)`, so β is literally a Pareto tail index. 
-For `1 < β < 2` the run variance is infinite, `Σ_h ρ_h` diverges, `Var(S_n) ~ n^(3−β)`, and the failure is 
-in the scaling *exponent* of the variance. This would be in theory. When fat-tails meet absorbing barriers, 
-however, things can change drastically. 
+The survival function behaves as `P(L > ℓ) ~ C ℓ^(−β)`, so β is literally a Pareto tail index.
+For `1 < β < 2` the run variance is infinite, `Σ_h ρ_h` diverges, `Var(S_n) ~ n^(3−β)`, and the failure is
+in the scaling *exponent* of the variance. That is the theory. When fat tails meet absorbing barriers,
+however, things can change drastically.
 
 ## Headline results
 
-1. **A hot-hand makes us over-confident**
-An order-1 chain (short-term memory), effectively generates excess kurtosis which still decays 
-to zero. Correlation of this kind does not buy fat tails; it buys only **overconfidence**. And 
-this is a problem. Because, then, every normality test on correctly-standardised residuals will pass 
-while your error bars stay too small with respect to the actual scenaro you would like to describe. 
+1. **A hot hand makes us overconfident.**
+An order-1 chain (short-term memory), effectively generates excess kurtosis which still decays
+to zero. Correlation of this kind does not buy fat tails; it buys only **overconfidence**. And
+this is a problem. Because, then, every normality test on correctly-standardised residuals will pass
+while your error bars stay too small with respect to the actual scenario you would like to describe.
 There is more volatility in the system, even in this case. Quite fun!
 
-2. **Momentum is a variance pump, and in a barrier-crossing game variance is worth something to whoever is behind.** 
-We have an asymettric situation in which the (relatively) close-to-win-but-still-losing player benefits more from luck (i.e., more things can go better than worse for them) than the close-to-losing-but-still-winning player (which has a more capped ceiling on good luck than bad luck). At p = 0.55 held fixed, the favourite's match-win probability falls from 91% to 77% as k goes from 0 to 1. **A model fitted on point-level data and aggregated under independence systematically overprices favourites.** If a player is a (slight) underdog, volatility will benefit them more!
+2. **Momentum is a variance pump, and in a barrier-crossing game variance is worth something to whoever is behind.**
+We have an asymmetric situation in which the (relatively) close-to-win-but-still-losing player benefits more from luck (i.e., more things can go better than worse for them) than the close-to-losing-but-still-winning player, who has a more capped ceiling on good luck than bad luck. At p = 0.55 held fixed, the favourite's match-win probability falls from 91% to 77% as k goes from 0 to 1. **A model fitted on point-level data and aggregated under independence systematically overprices favourites.** If a player is a (slight) underdog, volatility will benefit them more!
 
-3. **The absorbing barriers kill the long-memory in tennis.** 
-We consider the underlying chosen models within the constraint of *real matches*. As such, a match starts at the first point 
-and ends when someone has won two sets. The longest run physically possible in a best-of-3 is **53** points. 
+3. **The absorbing barriers kill the long memory in tennis.**
+We consider the underlying chosen models within the constraint of *real matches*. As such, a match starts at the first point
+and ends when someone has won two sets. The longest run physically possible in a best-of-3 is **53** points.
 We found that by keeping the mean run length fixed at 4.0 and sweeping β from 3.5 down to 1.3 — i.e., from finite
 to infinite variance — the longest run ever observed is **52 or 53 every single time**. In other words: the
 extreme is pinned to the format, not to the underlying process. In fact, the clipped runs would be those that carry
-*all* of the variance for β < 2.0. As such we discovered the simple fact that **a truncated power law is not a power law**. 
+*all* of the variance for β < 2.0. As such we discovered the simple fact that **a truncated power law is not a power law**.
 
-4. **Estimating point and match win probabilities are not the same thing.**
-The mapping from the probability of winning a point to winning a match is strikinlgy nonlinear. A player that wins 51% of the points wins about 60.6% of the best-of-3 matches. With 55% points won, this translates to over 90% of the best-of-3 matches. The absorbing barriers are clearly carrying this nonlinear mapping. The nonlinearity 
+4. **Estimating point and match win probabilities is not the same thing.**
+The mapping from the probability of winning a point to winning a match is strikingly nonlinear. A player that wins 51% of the points wins about 60.6% of the best-of-3 matches. With 55% points won, this translates to over 90% of the best-of-3 matches. The absorbing barriers are clearly carrying this nonlinear mapping. The nonlinearity
 carries over fragility to the estimation of the win-point probability. As a consequence, even if the probability of winning a single point can be estimated
-reasonably well with a single game, this translate in completely uninformative posteriors on winning the match.
+reasonably well with a single game, this translates into completely uninformative posteriors on winning the match.
 
-5. **Detecting long memory is easy; measuring its consequences is impossible.** Given a single match, can we detect long memory? And if so
-can say anything about the Pareto exponent? Well, it turns out that detection is startlingly easy, with essentially 100% detection rates from two matches and 80% 
-with a single one, at a 0–1% false-positive rate. This is because the discrimination power between short and long memory is carried by the **body** 
+5. **Detecting long memory is easy; measuring its consequences is impossible.** Given a single match, can we detect long memory? And if so,
+can we say anything about the Pareto exponent? Well, it turns out that detection is startlingly easy, with essentially 100% detection rates from two matches and 80%
+with a single one, at a 0–1% false-positive rate. This is because the discrimination power between short and long memory is carried by the **body**
 of the run-length distribution (e.g., runs of 5–20 points, which fit comfortably inside a match) rather than by the tail the barrier destroyed. However, **the barrier annihilates the predictive power on the Pareto exponent**. Indeed, the 95% interval on β from one match is `[1.1, 5.9]`, and it takes
-about twenty-five matches merely to place β on one side of the phase boundary at 2. 
+about twenty-five matches merely to place β on one side of the phase boundary at 2.
 
 ## Files
 
-1.  `tennis_lab.py`: The simulator. `TennisSimulator` (point → game → set → match, with deuce and tiebreak, optional order-1 momentum) plus exact closed forms `game_win_probability`, `set_win_probability`, `match_win_probability_iid`. Depends only on `numpy`. 
-2. `narrative_tennis_lab.ipynb` | The analysis: eight sections, with narrative. Outputs are committed, so it reads on GitHub without running. |
-3. `baseline.py`: a regression fingerprint. Any change meant to preserve behaviour must leave its output byte-identical — which is what made the signed-streak refactor safe to do.
+1. `tennis_lab.py`: The simulator. `TennisSimulator` (point → game → set → match, with deuce and tiebreak, optional order-1 momentum) plus exact closed forms `game_win_probability`, `set_win_probability`, `match_win_probability_iid`. Depends only on `numpy`.
+2. `narrative_tennis_lab.ipynb`: The analysis: eight sections, with narrative. Outputs are committed, so it reads on GitHub without running.
+3. `tests/test_tennis_lab.py`: every claim in *Quick Validations* below, executed under CI.
 
 Key knobs to turn: `p` (target stationary point-win probability), `k` (momentum strength in
 log-odds; 0 = i.i.d., 1.0 = strong hot hand), `best_of`, `calibrate`, `seed`. For the
@@ -89,7 +92,7 @@ Quantities that are theorems about the order-1 chain (`rho`, `variance_inflation
 
 ## Quick Validations
 
-The module is checked against closed:
+The module is checked against closed forms:
 
 - `k = 0` reproduces `Binomial(n, p)` to Monte-Carlo error.
 - Simulated variance matches `exact_variance(n)` — the untruncated covariance sum
@@ -106,12 +109,35 @@ The module is checked against closed:
 - The 53-point ceiling was confirmed by exhaustive search over 150,000 deliberately streaky
   matches (77 for best-of-5), never once exceeded.
 
-## Requirements
+Each of these is a test in `tests/`, so the list above is enforced rather than asserted.
+
+## Running it
 
 `numpy` for the module; `pandas`, `matplotlib`, `jupyter` additionally for the notebook.
 No `scipy` — the binomial pmf and the normal quantile function are implemented inline.
 
 ```
 pip install -r requirements.txt
+jupyter lab narrative_tennis_lab.ipynb
 ```
 
+## Tests
+
+```
+pip install pytest
+pytest                 # ~3 s
+pytest --runslow       # adds the exhaustive barrier-ceiling searches, ~15 s
+```
+
+The suite is seeded throughout and its Monte-Carlo tolerances sit at several standard
+errors, so a red run means a regression rather than an unlucky seed. Two of the tests are
+a matched pair worth pointing at: `test_runs_are_unbounded_without_a_scoreboard` and
+`test_longest_run_is_capped_by_the_format` run the *same* β = 1.3 process and get runs of
+several hundred points in one case and never more than 53 in the other. That is headline
+result 3, as an assertion.
+
+## License
+
+MIT — see [LICENSE](LICENSE).
+
+Author: Marco Galoppo
