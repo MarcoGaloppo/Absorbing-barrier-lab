@@ -119,7 +119,17 @@ No `scipy` — the binomial pmf and the normal quantile function are implemented
 ```
 pip install -r requirements.txt
 jupyter lab narrative_tennis_lab.ipynb
+
 ```
+## On the use of AI
+
+`tennis_lab.py` and the notebook were written with Claude (Anthropic) used as a pair programmer
+over multiple sessions. I chose the questions, the structure, and the standard of evidence whilst 
+employing Claude to write a good part of the implementation and some of the prose.
+
+Every numerical claim in the notebooks is produced by the code in this repository and was checked
+against its output. Several of Claude's results were wrong and were corrected appropriately, for 
+example ignoring the absorbing barrier in the long-memory case.
 
 ## Tests
 
