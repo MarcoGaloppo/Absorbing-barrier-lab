@@ -123,7 +123,7 @@ jupyter lab narrative_tennis_lab.ipynb
 ```
 ## On the use of AI
 
-`tennis_lab.py` and the notebook were written with Claude (Anthropic) used as a pair programmer
+`tennis_lab.py` and the notebook was written with Claude (Anthropic) used as a pair programmer
 over multiple sessions. I chose the questions, the structure, and the standard of evidence whilst 
 employing Claude to write a good part of the implementation and some of the prose.
 
