@@ -3,6 +3,13 @@
 [![CI](https://github.com/MarcoGaloppo/Absorbing-barrier-lab/actions/workflows/ci.yml/badge.svg)](https://github.com/MarcoGaloppo/Absorbing-barrier-lab/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
+## In a nutshell
+
+We build tennis models to investigate serial correlation, long memory, and absorbing barriers. Short-term correlation directly inflates volatility and long memory is surprisingly easy to detect.
+Sadly, estimating its effect is near impossible under real-wolrd circumstances. Finally, in the presence of absorbing barriers these are what sets the extremes.
+
+## To wit
+
 How much of textbook statistics' comfortable machinery survives contact with a
 process that has **absorbing barriers**, **serial correlation**, and **long memory**?
 Tennis is a clean (and fun!) place to ask, because the bottom of the process really is a
