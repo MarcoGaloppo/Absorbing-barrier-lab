@@ -5,8 +5,8 @@
 
 ## In a nutshell
 
-We build tennis models to investigate serial correlation, long memory, and absorbing barriers. Short-term correlation directly inflates volatility and long memory is surprisingly easy to detect.
-Sadly, estimating its effect is near impossible under real-wolrd circumstances. Finally, in the presence of absorbing barriers these are what sets the extremes.
+We build tennis models to investigate serial correlation, long memory, and absorbing barriers. We learn that short-term correlation directly inflates volatility and long memory is surprisingly easy to detect.
+Sadly, estimating its effect is near impossible under real-wolrd circumstances. Finally, we clearly see that in the presence of absorbing barriers these are what sets the extremes.
 
 ## To wit
 
